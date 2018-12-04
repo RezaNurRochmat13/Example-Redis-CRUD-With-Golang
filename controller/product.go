@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
-	"go-redis/model"
+	"go-example-redis/model"
 )
 
 // SetDataBooksIntoRedis func does set value into Redis
