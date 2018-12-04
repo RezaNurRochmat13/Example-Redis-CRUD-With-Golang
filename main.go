@@ -4,13 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gomodule/redigo/redis"
+	"go-redis/controller"
 	"go-redis/model"
 )
 
 func main() {
+
 	// Initialized database pooling
 	initializePools := newPools()
 	establishedConn := initializePools.Get()
+
 	// Closing database connection
 	defer establishedConn.Close()
 
@@ -46,6 +49,22 @@ func main() {
 
 	if err != nil {
 		panic(err)
+	}
+
+	// Set Product Values from struct into Redis
+	err = controller.SetDataBooksIntoRedis(establishedConn)
+
+	// Exception handling
+	if err != nil {
+		panic(err)
+	}
+
+	// Get Product Values from Redis
+	err = controller.GetBooksValuesFromRedis(establishedConn)
+
+	// Exception handling
+	if err != nil {
+		panic(err.Error())
 	}
 
 }
@@ -136,11 +155,11 @@ func GetValuesFromRedis(cmd redis.Conn) error {
 // Set values from struct in Redis
 func setValuesFromStruct(cmd redis.Conn) error {
 	user := &model.Users{
-		Username: "Rejak",
-		MobileID: "12345678",
-		Email: "rejak@gmail.com",
+		Username:  "Rejak",
+		MobileID:  "12345678",
+		Email:     "rejak@gmail.com",
 		Firstname: "Rejak",
-		Lastname: "Rochmat",
+		Lastname:  "Rochmat",
 	}
 
 	serialized, err := json.Marshal(user)
@@ -175,5 +194,3 @@ func getValuesFromStruct(cmd redis.Conn) error {
 
 	return nil
 }
-
-
