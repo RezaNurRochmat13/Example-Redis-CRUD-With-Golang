@@ -15,7 +15,8 @@ func BaseRouting() {
 
 	v1 := routers.Group("/v1/api/")
 	{
-		v1.POST("books", controller.SetBooksValuesToDBAndRedis)
+		v1.GET("books/:UUIDBooks", controller.GetDetailBooksFromRedis)
+		v1.POST("books", controller.CreateBooksToDBAndRedis)
 	}
 
 	routers.Run(":8400")
