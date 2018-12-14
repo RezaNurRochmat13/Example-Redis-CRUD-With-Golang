@@ -17,6 +17,7 @@ func BaseRouting() {
 	{
 		v1.GET("books/:UUIDBooks", controller.GetDetailBooksFromRedis)
 		v1.POST("books", controller.CreateBooksToDBAndRedis)
+		v1.PUT("books/:UUIDBooks", controller.UpdateBooksInRedisAndDB)
 	}
 
 	routers.Run(":8400")
