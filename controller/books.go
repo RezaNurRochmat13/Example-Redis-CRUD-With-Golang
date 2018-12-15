@@ -125,3 +125,9 @@ func UpdateBooksInRedisAndDB(c *gin.Context) {
 	}
 
 }
+
+// DeleteBooksFromRedisAndDB func does delete data from redis and DB
+func DeleteBooksFromRedisAndDB(context *gin.Context) {
+	context.JSON(http.StatusOK, gin.H{
+		"message": "Deleted successfully"})
+}

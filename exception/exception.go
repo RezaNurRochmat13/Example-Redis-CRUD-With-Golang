@@ -8,7 +8,7 @@ type MessageException struct {
 	message string
 }
 
-func GlobalMessageException(message string) *MessageException {
+func GlobalMessageException(message error) *MessageException {
 	return &MessageException{
 		message: message,
 	}
