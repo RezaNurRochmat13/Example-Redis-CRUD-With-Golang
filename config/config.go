@@ -3,11 +3,12 @@ package config
 import (
 	"github.com/gomodule/redigo/redis"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 // DatabaseConn function does initialize database connection
 func DatabaseConn() *gorm.DB {
-	db, err := gorm.Open("mysql", "reja:reja123@tcp(192.168.203.86:3306)/redis-database?charset=utf8")
+	db, err := gorm.Open("mysql", "reza:reza@tcp(127.0.0.1:3306)/redis-database?charset=utf8")
 
 	if err != nil {
 		panic(err.Error())

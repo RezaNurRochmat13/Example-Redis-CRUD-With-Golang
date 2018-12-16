@@ -42,7 +42,7 @@ func CreateBooksToDBAndRedis(c *gin.Context) {
 	_, err := connection.Do("SET", UUIDBooks, createBooksPayload)
 
 	// Exception error handling
-	exception.GlobalMessageException(err)
+	exception.GlobalException(err)
 
 	// Message when trigerred successfully
 	c.JSON(http.StatusOK, gin.H{"message": "Inserted successfully"})
@@ -64,7 +64,7 @@ func GetDetailBooksFromRedis(c *gin.Context) {
 	value, err := redis.String(connection.Do("GET", UUIDBooks))
 
 	// Exception error handling
-	exception.GlobalMessageException(err)
+	exception.GlobalException(err)
 
 	//// Serve as JSON formats
 	c.JSON(http.StatusOK, gin.H{
@@ -118,7 +118,7 @@ func UpdateBooksInRedisAndDB(c *gin.Context) {
 		_, err := connection.Do("SET", UUIDBooks, updateBookPayload)
 
 		// Exception error handling
-		exception.GlobalMessageException(err)
+		exception.GlobalException(err)
 
 		// Closing connection Redis when completed
 		defer connection.Close()
@@ -128,6 +128,46 @@ func UpdateBooksInRedisAndDB(c *gin.Context) {
 
 // DeleteBooksFromRedisAndDB func does delete data from redis and DB
 func DeleteBooksFromRedisAndDB(context *gin.Context) {
-	context.JSON(http.StatusOK, gin.H{
-		"message": "Deleted successfully"})
+
+	// Initialize redis connection
+	connection := pool.Get()
+
+	// Initialize db connection
+	db := config.DatabaseConn()
+
+	// Declare model
+	var deleteBooks model.Books
+
+	// Set parameter UUID
+	UUIDBooks := context.Param("UUIDBooks")
+
+	// Check record in database
+	if db.Where("books.uuid_books = ?", UUIDBooks).Find(&deleteBooks).RecordNotFound() {
+
+		// When not found record
+		context.JSON(http.StatusOK, gin.H{"message": "Record not found"})
+
+		// Closing database when completed execution
+		defer db.Close()
+
+	} else {
+
+		// When found record, deleted record in database
+		db.Where("books.uuid_books = ?", UUIDBooks).Find(&deleteBooks).Delete(&deleteBooks)
+
+		// When record found, deleted too in Redis
+		_, err := connection.Do("DEL", UUIDBooks)
+
+		// Exception handling
+		exception.GlobalException(err)
+
+		// When successfully deleted
+		context.JSON(http.StatusOK, gin.H{"message": "Deleted successfully"})
+
+		// Closing database when completed execution
+		defer db.Close()
+
+		// Closing redis connection when compeleted execution
+		defer connection.Close()
+	}
 }

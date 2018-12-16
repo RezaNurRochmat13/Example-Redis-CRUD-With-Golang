@@ -1,15 +1,11 @@
 package exception
 
-type Exception interface {
-	Error() string
-}
+import (
+	"github.com/pkg/errors"
+)
 
-type MessageException struct {
-	message string
-}
-
-func GlobalMessageException(message error) *MessageException {
-	return &MessageException{
-		message: message,
-	}
+// GLOBAL ERROR EXCEPTION
+func GlobalException(message error) error {
+	ThrowError := errors.Errorf("Cause and exception + ", message)
+	return ThrowError
 }
