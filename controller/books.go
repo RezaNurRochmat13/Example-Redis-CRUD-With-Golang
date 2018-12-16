@@ -7,6 +7,7 @@ import (
 	"go-example-redis/config"
 	"go-example-redis/exception"
 	"go-example-redis/model"
+	"log"
 	"net/http"
 )
 
@@ -39,7 +40,7 @@ func CreateBooksToDBAndRedis(c *gin.Context) {
 	db.Create(&createBooksPayload)
 
 	// Saving into Redis
-	_, err := connection.Do("SET", UUIDBooks, createBooksPayload)
+	_, err := connection.Do("HMSET", redis.Args{}.Add(UUIDBooks).AddFlat(createBooksPayload)...)
 
 	// Exception error handling
 	exception.GlobalException(err)
@@ -57,19 +58,25 @@ func GetDetailBooksFromRedis(c *gin.Context) {
 	// Initialize redis connection
 	connection := pool.Get()
 
+	var booksModel model.Books
+
 	// Set parameters
 	UUIDBooks := c.Param("UUIDBooks")
 
 	// Get values from Redis
-	value, err := redis.String(connection.Do("GET", UUIDBooks))
+	value, err := redis.Values(connection.Do("HGETALL", UUIDBooks))
+
+	err = redis.ScanStruct(value, &booksModel)
+
+	log.Println("Halo :", err)
 
 	// Exception error handling
 	exception.GlobalException(err)
 
-	//// Serve as JSON formats
-	c.JSON(http.StatusOK, gin.H{
-		"data": value,
-		"keys": UUIDBooks})
+	////// Serve as JSON formats
+	//c.JSON(http.StatusOK, gin.H{
+	//	"data": value,
+	//	"keys": UUIDBooks})
 
 	// Closing connection Redis when successfully complete
 	defer connection.Close()
