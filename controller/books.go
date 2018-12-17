@@ -1,13 +1,13 @@
 package controller
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/gomodule/redigo/redis"
 	"github.com/satori/go.uuid"
 	"go-example-redis/config"
 	"go-example-redis/exception"
 	"go-example-redis/model"
-	"log"
 	"net/http"
 )
 
@@ -39,8 +39,11 @@ func CreateBooksToDBAndRedis(c *gin.Context) {
 	// Saves into DB
 	db.Create(&createBooksPayload)
 
+	// Parsing data with object property
+	parseRecord, err := json.Marshal(createBooksPayload)
+
 	// Saving into Redis
-	_, err := connection.Do("HMSET", redis.Args{}.Add(UUIDBooks).AddFlat(createBooksPayload)...)
+	_, err = connection.Do("SET", UUIDBooks, parseRecord)
 
 	// Exception error handling
 	exception.GlobalException(err)
@@ -58,25 +61,26 @@ func GetDetailBooksFromRedis(c *gin.Context) {
 	// Initialize redis connection
 	connection := pool.Get()
 
-	var booksModel model.Books
+	// Declare models
+	var Books model.Books
 
 	// Set parameters
 	UUIDBooks := c.Param("UUIDBooks")
 
 	// Get values from Redis
-	value, err := redis.Values(connection.Do("HGETALL", UUIDBooks))
+	value, err := redis.String(connection.Do("GET", UUIDBooks))
 
-	err = redis.ScanStruct(value, &booksModel)
+	// Unmarshalling values and map to struct from Redis
+	err = json.Unmarshal([]byte(value), &Books)
 
-	log.Println("Halo :", err)
+	if err != nil {
+		panic(err)
+	}
 
-	// Exception error handling
-	exception.GlobalException(err)
-
-	////// Serve as JSON formats
-	//c.JSON(http.StatusOK, gin.H{
-	//	"data": value,
-	//	"keys": UUIDBooks})
+	// Serve as JSON formats
+	c.JSON(http.StatusOK, gin.H{
+		"data": Books,
+		"keys": UUIDBooks})
 
 	// Closing connection Redis when successfully complete
 	defer connection.Close()
