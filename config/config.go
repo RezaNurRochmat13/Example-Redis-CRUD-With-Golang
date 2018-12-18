@@ -17,6 +17,7 @@ func DatabaseConn() *gorm.DB {
 	return db
 }
 
+// Redis database pooling
 func NewConnectionPools() *redis.Pool {
 	return &redis.Pool{
 		// Maximum number of idle connections in the pool.
